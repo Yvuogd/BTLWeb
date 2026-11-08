@@ -1,0 +1,183 @@
+@using NovelPlatform.Models
+@{
+    ViewData["Title"] = "Quản trị nội dung";
+    var users = (List<AppUser>)ViewBag.Users;
+    var categories = (List<Category>)ViewBag.Categories;
+    var comments = (List<Comment>)ViewBag.Comments;
+    var pendingNovels = (List<Novel>)ViewBag.PendingNovels;
+    var pendingChapters = (List<Chapter>)ViewBag.PendingChapters;
+}
+
+<section class="content-section page-section">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">BẢNG ĐIỀU KHIỂN</span>
+            <h1>Quản trị Truyện Chữ</h1>
+            <p class="muted">Đăng truyện, duyệt nội dung và quản lý cộng đồng.</p>
+        </div>
+        <a class="btn btn-dark" asp-controller="Studio" asp-action="Create">＋ Đăng truyện</a>
+    </div>
+
+    @if (TempData["AdminMessage"] is string message)
+    {
+        <div class="notice-success" role="status">@message</div>
+    }
+
+    <div class="moderation-grid">
+        <section class="admin-card">
+            <div class="section-heading">
+                <div>
+                    <h2>Truyện chờ duyệt</h2>
+                    <span class="muted">@pendingNovels.Count truyện</span>
+                </div>
+            </div>
+
+            @if (pendingNovels.Count == 0)
+            {
+                <p class="empty-state">Không có truyện nào đang chờ duyệt.</p>
+            }
+            else
+            {
+                @foreach (var novel in pendingNovels)
+                {
+                    <article class="moderation-item">
+                        <div>
+                            <h3>@novel.Title</h3>
+                            <p class="muted">@novel.Author.DisplayName · @novel.Category.Name</p>
+                            <p>@novel.Description</p>
+                        </div>
+                        <div class="moderation-actions">
+                            <form asp-action="ReviewNovel" method="post">
+                                <input type="hidden" name="id" value="@novel.Id" />
+                                <input type="hidden" name="decision" value="approve" />
+                                <button class="btn btn-dark" type="submit">Duyệt và đăng</button>
+                            </form>
+                            <form asp-action="ReviewNovel" method="post">
+                                <input type="hidden" name="id" value="@novel.Id" />
+                                <input type="hidden" name="decision" value="reject" />
+                                <button class="btn btn-quiet" type="submit">Từ chối</button>
+                            </form>
+                        </div>
+                    </article>
+                }
+            }
+        </section>
+
+        <section class="admin-card">
+            <div class="section-heading">
+                <div>
+                    <h2>Chương chờ duyệt</h2>
+                    <span class="muted">@pendingChapters.Count chương</span>
+                </div>
+            </div>
+
+            @if (pendingChapters.Count == 0)
+            {
+                <p class="empty-state">Không có chương nào đang chờ duyệt.</p>
+            }
+            else
+            {
+                @foreach (var chapter in pendingChapters)
+                {
+                    <article class="moderation-item">
+                        <div>
+                            <h3>@chapter.Novel.Title · Chương @chapter.Number</h3>
+                            <p class="muted">@chapter.Novel.Author.DisplayName · @chapter.Title</p>
+                            <details>
+                                <summary>Xem nội dung chương</summary>
+                                <div class="moderation-content">@chapter.Content</div>
+                            </details>
+                        </div>
+                        <div class="moderation-actions">
+                            <form asp-action="ReviewChapter" method="post">
+                                <input type="hidden" name="id" value="@chapter.Id" />
+                                <input type="hidden" name="decision" value="approve" />
+                                <button class="btn btn-dark" type="submit">Duyệt và đăng</button>
+                            </form>
+                            <form asp-action="ReviewChapter" method="post">
+                                <input type="hidden" name="id" value="@chapter.Id" />
+                                <input type="hidden" name="decision" value="reject" />
+                                <button class="btn btn-quiet" type="submit">Từ chối</button>
+                            </form>
+                        </div>
+                    </article>
+                }
+            }
+        </section>
+    </div>
+
+    <div class="admin-columns">
+        <section class="admin-card">
+            <div class="section-heading">
+                <h2>Tài khoản</h2>
+                <span class="muted">@users.Count</span>
+            </div>
+
+            @foreach (var user in users)
+            {
+                <div class="admin-row">
+                    <div>
+                        <strong>@user.DisplayName</strong>
+                        <small>@user.Username · @user.Role.Name</small>
+                    </div>
+                    <span class="status-pill">@user.Status</span>
+                    @if (user.Id.ToString() != User.FindFirst("uid")?.Value)
+                    {
+                        <form asp-action="ToggleUser" method="post">
+                            <input type="hidden" name="id" value="@user.Id" />
+                            <button class="btn btn-quiet" type="submit">
+                                @(user.Status == "Active" ? "Khóa" : "Mở khóa")
+                            </button>
+                        </form>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="admin-card">
+            <div class="section-heading">
+                <h2>Thể loại</h2>
+            </div>
+            <form asp-action="AddCategory" method="post" class="category-form">
+                <input name="name" placeholder="Tên thể loại" maxlength="60" required />
+                <input name="description" placeholder="Mô tả" maxlength="500" />
+                <button class="btn btn-dark" type="submit">Thêm</button>
+            </form>
+            @foreach (var category in categories)
+            {
+                <div class="admin-row">
+                    <strong>@category.Name</strong>
+                    <small>@category.Description</small>
+                </div>
+            }
+        </section>
+    </div>
+
+    <section class="admin-card moderation">
+        <div class="section-heading">
+            <div>
+                <h2>Bình luận gần đây</h2>
+                <span class="muted">Kiểm duyệt nội dung cộng đồng</span>
+            </div>
+        </div>
+
+        @if (comments.Count == 0)
+        {
+            <p class="empty-state">Chưa có bình luận.</p>
+        }
+        @foreach (var comment in comments)
+        {
+            <div class="admin-row">
+                <div>
+                    <strong>@comment.User.DisplayName · @comment.Novel.Title</strong>
+                    <p>@comment.Content</p>
+                    <small>@comment.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+                </div>
+                <form asp-action="DeleteComment" method="post">
+                    <input type="hidden" name="id" value="@comment.Id" />
+                    <button class="btn btn-quiet" type="submit">Xóa bình luận</button>
+                </form>
+            </div>
+        }
+    </section>
+</section>

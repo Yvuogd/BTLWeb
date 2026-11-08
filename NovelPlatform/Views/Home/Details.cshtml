@@ -1,0 +1,137 @@
+@model NovelPlatform.Models.Novel
+@{
+    ViewData["Title"] = Model.Title;
+    var publishedChapters = Model.Chapters.OrderBy(chapter => chapter.Number).ToList();
+}
+
+<div class="detail-wrap">
+    <a class="back-link" asp-action="Index">← Khám phá thêm truyện</a>
+    <section class="detail-hero">
+        <div class="detail-cover">
+            <img src="@(Model.CoverImage ?? "/images/cloud-library.svg")" alt="Bìa @Model.Title" />
+        </div>
+        <div class="detail-copy">
+            <div class="card-meta">
+                <span>@Model.Category.Name</span>
+                <span>
+                    ★ @(Model.Ratings.Count == 0
+                        ? "Chưa có đánh giá"
+                        : Model.Ratings.Average(rating => rating.Score).ToString("0.0")
+                            + " · " + Model.Ratings.Count + " đánh giá")
+                </span>
+            </div>
+            <h1>@Model.Title</h1>
+            <p class="byline">
+                Tác giả <strong>@Model.Author.DisplayName</strong>
+                <span class="status-pill inline">
+                    @(Model.Status == "Completed" ? "Hoàn thành" : "Đang ra")
+                </span>
+            </p>
+            <p class="detail-description">@Model.Description</p>
+            <div class="detail-stats">
+                <span><strong>@publishedChapters.Count</strong> chương</span>
+                <span><strong>@Model.Comments.Count</strong> bình luận</span>
+            </div>
+            <div class="action-row">
+                @if (publishedChapters.Count > 0)
+                {
+                    <a class="btn btn-dark" asp-action="Read" asp-route-id="@publishedChapters[0].Id">
+                        Đọc từ đầu
+                    </a>
+                }
+                else
+                {
+                    <span class="btn btn-outline" aria-disabled="true">Chưa có chương</span>
+                }
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Library" asp-action="Toggle" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button class="btn btn-outline" type="submit">
+                            @(ViewBag.Bookmarked ? "♥ Đã lưu" : "♡ Lưu vào tủ sách")
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </section>
+
+    <div class="detail-columns">
+        <section>
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">BẮT ĐẦU TỪ ĐÂU</span>
+                    <h2>Danh sách chương</h2>
+                </div>
+            </div>
+            <div class="chapter-list">
+                @foreach (var chapter in publishedChapters)
+                {
+                    <a asp-action="Read" asp-route-id="@chapter.Id">
+                        <span class="chapter-number">@chapter.Number.ToString("00")</span>
+                        <span>
+                            <strong>@chapter.Title</strong>
+                            <small>Chương @chapter.Number</small>
+                        </span>
+                        <span class="chapter-arrow">→</span>
+                    </a>
+                }
+                @if (publishedChapters.Count == 0)
+                {
+                    <p class="empty-state">Truyện chưa có chương được xuất bản.</p>
+                }
+            </div>
+        </section>
+
+        <aside class="feedback-panel">
+            <span class="eyebrow">GÓC CỦA BẠN</span>
+            <h3>Chia sẻ cảm nhận</h3>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <form asp-controller="Library" asp-action="Rate" method="post" class="rate-form">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <label for="score">Đánh giá truyện</label>
+                    <select id="score" name="score">
+                        <option value="5">★★★★★ · Tuyệt vời</option>
+                        <option value="4">★★★★ · Rất hay</option>
+                        <option value="3">★★★ · Ổn</option>
+                        <option value="2">★★ · Chưa hợp</option>
+                        <option value="1">★ · Không hợp</option>
+                    </select>
+                    <button class="btn btn-outline btn-block" type="submit">Gửi đánh giá</button>
+                </form>
+                <form asp-controller="Library" asp-action="Comment" method="post" class="comment-form">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <textarea name="content" maxlength="2000" placeholder="Bạn nghĩ gì về câu chuyện này?" required></textarea>
+                    <button class="btn btn-dark btn-block" type="submit">Đăng bình luận</button>
+                </form>
+            }
+            else
+            {
+                <p class="muted">Đăng nhập để lưu truyện, đánh giá và bình luận.</p>
+                <a class="btn btn-dark btn-block" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+            }
+        </aside>
+    </div>
+
+    <section class="comments-section">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">ĐỌC CÙNG NHAU</span>
+                <h2>Bình luận <span class="muted">(@Model.Comments.Count)</span></h2>
+            </div>
+        </div>
+        @foreach (var comment in Model.Comments.OrderByDescending(item => item.CreatedAt))
+        {
+            <article class="comment">
+                <div class="avatar">@comment.User.DisplayName[..1]</div>
+                <div>
+                    <strong>@comment.User.DisplayName</strong>
+                    <small>@comment.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</small>
+                    <p>@comment.Content</p>
+                </div>
+            </article>
+        }
+    </section>
+</div>

@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="auth-wrap">
+    <div class="auth-art">
+        <img src="/images/cloud-library.svg" alt="Thư viện mộng mơ" />
+        <span class="eyebrow">HẸN GẶP BẠN TRONG TRANG SÁCH</span>
+        <h2>Thế giới truyện<br />đang đợi bạn.</h2>
+    </div>
+
+    <form class="form-card" asp-action="Login" method="post">
+        <h1>Chào mừng trở lại</h1>
+        <p class="muted">Đăng nhập để tiếp tục hành trình đọc.</p>
+        <div asp-validation-summary="All" class="form-error"></div>
+        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+        <label for="username">Tên đăng nhập hoặc email</label>
+        <input id="username" name="username" autocomplete="username" required />
+
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+        <button class="btn btn-dark btn-block" type="submit">Đăng nhập</button>
+        <p class="form-foot">
+            Chưa có tài khoản? <a asp-action="Register">Tạo tài khoản</a>
+        </p>
+
+        <div class="demo-box">
+            <strong>Tài khoản dùng thử</strong>
+            <span>Độc giả: docgia / DocGia123!</span>
+            <span>Tác giả: tacgia / TacGia123!</span>
+            <span>Quản trị: admin / Admin123!</span>
+        </div>
+    </form>
+</div>

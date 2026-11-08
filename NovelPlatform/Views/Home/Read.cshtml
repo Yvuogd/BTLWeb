@@ -1,0 +1,53 @@
+@model NovelPlatform.Models.Chapter
+@{
+    ViewData["Title"] = Model.Title;
+    var normalizedContent = (Model.Content ?? "").Replace("\r\n", "\n");
+    var paragraphs = normalizedContent.Split(
+        "\n\n",
+        StringSplitOptions.RemoveEmptyEntries);
+}
+
+<article class="reader">
+    <a class="back-link" asp-action="Details" asp-route-id="@Model.NovelId">
+        ← @(Model.Novel?.Title ?? "Truyện")
+    </a>
+
+    <header class="reader-header">
+        <span class="eyebrow">CHƯƠNG @Model.Number.ToString("00")</span>
+        <h1>@Model.Title</h1>
+        <p>@(Model.Novel?.Author?.DisplayName ?? "Tác giả")</p>
+    </header>
+
+    <div class="reader-content">
+        @foreach (var paragraph in paragraphs)
+        {
+            <p>@paragraph</p>
+        }
+    </div>
+
+    <nav class="reader-nav" aria-label="Điều hướng chương">
+        @if (ViewBag.Previous is int previousId)
+        {
+            <a class="btn btn-outline" asp-action="Read" asp-route-id="@previousId">
+                ← Chương trước
+            </a>
+        }
+        else
+        {
+            <span></span>
+        }
+
+        @if (ViewBag.Next is int nextId)
+        {
+            <a class="btn btn-dark" asp-action="Read" asp-route-id="@nextId">
+                Chương tiếp theo →
+            </a>
+        }
+        else
+        {
+            <a class="btn btn-outline" asp-action="Details" asp-route-id="@Model.NovelId">
+                Về trang truyện
+            </a>
+        }
+    </nav>
+</article>

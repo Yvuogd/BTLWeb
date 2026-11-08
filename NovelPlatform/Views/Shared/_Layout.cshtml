@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] · Truyện Chữ</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="tc-header">
+        <div class="tc-header-main">
+            <div class="tc-header-inner">
+                <a class="tc-brand" asp-controller="Home" asp-action="Index" aria-label="Truyện Chữ trang chủ">
+                    <span class="tc-brand-mark">TC</span><span>Truyện Chữ</span>
+                </a>
+                <nav class="tc-nav" aria-label="Điều hướng chính">
+                    <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+                    <details class="tc-menu-group">
+                        <summary>Thể loại <span aria-hidden="true">⌄</span></summary>
+                        <div class="tc-dropdown">
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Tiên Hiệp">Tiên Hiệp</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Kiếm Hiệp">Kiếm Hiệp</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Huyền Huyễn">Huyền Huyễn</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Xuyên Không">Xuyên Không</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Trọng Sinh">Trọng Sinh</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Ngôn Tình">Ngôn Tình</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Cổ Đại">Cổ Đại</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Đô Thị">Đô Thị</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Mạt Thế">Mạt Thế</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Hệ Thống">Hệ Thống</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Dị Giới">Dị Giới</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Võng Du">Võng Du</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Khoa Huyễn">Khoa Huyễn</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Lịch Sử">Lịch Sử</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Quân Sự">Quân Sự</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Trinh Thám">Trinh Thám</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Đồng Nhân">Đồng Nhân</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Đam Mỹ">Đam Mỹ</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Bách Hợp">Bách Hợp</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Sủng">Sủng</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Ngược">Ngược</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Hài Hước">Hài Hước</a>
+                            <a asp-controller="Home" asp-action="Index" asp-route-genre="Khác">Khác</a>
+                        </div>
+                    </details>
+                    <a href="/#latest">Mới cập nhật</a>
+                    <a href="/#completed">Truyện full</a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Library" asp-action="Index">Tủ sách</a>
+                        @if (User.IsInRole("Author") || User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Studio" asp-action="Index">Đăng truyện</a>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Admin" asp-action="Index">Quản trị</a>
+                        }
+                    }
+                </nav>
+                <div class="tc-account">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <span class="tc-welcome">@User.Identity.Name</span>
+                        <form asp-controller="Account" asp-action="Logout" method="post"><button class="tc-login">Đăng xuất</button></form>
+                    }
+                    else
+                    {
+                        <a class="tc-login" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                        <a class="tc-register" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="tc-main">
+        @RenderBody()
+    </main>
+    <footer class="tc-footer">
+        <div class="tc-footer-inner">
+            <a class="tc-brand" asp-controller="Home" asp-action="Index">
+                <span class="tc-brand-mark">TC</span>
+                <span>Truyện Chữ</span>
+            </a>
+            <span>Không gian đọc truyện và khám phá những câu chuyện mới.</span>
+        </div>
+    </footer>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

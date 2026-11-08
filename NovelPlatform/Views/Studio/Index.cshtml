@@ -1,0 +1,64 @@
+@model List<NovelPlatform.Models.Novel>
+@{
+    ViewData["Title"] = "Studio tác giả";
+}
+
+<section class="content-section page-section">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">KHÔNG GIAN SÁNG TÁC</span>
+            <h1>Studio tác giả</h1>
+            <p class="muted">Quản lý truyện, theo dõi duyệt bài và đăng chương mới.</p>
+        </div>
+        <a class="btn btn-dark" asp-action="Create">＋ Tạo truyện mới</a>
+    </div>
+
+    @if (TempData["StudioMessage"] is string message)
+    {
+        <div class="notice-success" role="status">@message</div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="empty-state">
+            <h2>Bắt đầu câu chuyện đầu tiên</h2>
+            <p>Tạo hồ sơ truyện, sau đó thêm các chương trong Studio.</p>
+            <a class="btn btn-dark" asp-action="Create">Tạo truyện</a>
+        </div>
+    }
+    else
+    {
+        <div class="studio-list">
+            @foreach (var novel in Model)
+            {
+                <article class="studio-row">
+                    <img src="@(novel.CoverImage ?? "/images/cloud-library.svg")" alt="Bìa @novel.Title" />
+                    <div class="studio-copy">
+                        <h3>@novel.Title</h3>
+                        <span class="muted">
+                            @novel.Category.Name · @novel.Chapters.Count chương ·
+                            @(novel.Status == "Completed" ? "Hoàn thành" : "Đang ra")
+                        </span>
+                        <span class="review-status review-status-@novel.ReviewStatus.ToLowerInvariant()">
+                            @(novel.ReviewStatus switch
+                            {
+                                "Approved" => "Đã duyệt",
+                                "Rejected" => "Bị từ chối",
+                                _ => "Chờ duyệt"
+                            })
+                        </span>
+                    </div>
+                    <a class="btn btn-outline" asp-action="AddChapter" asp-route-id="@novel.Id">
+                        ＋ Thêm chương
+                    </a>
+                    @if (novel.ReviewStatus == "Approved")
+                    {
+                        <a class="btn btn-quiet" asp-controller="Home" asp-action="Details" asp-route-id="@novel.Id">
+                            Xem truyện →
+                        </a>
+                    }
+                </article>
+            }
+        </div>
+    }
+</section>

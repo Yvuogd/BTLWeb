@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Tạo tài khoản";
+}
+
+<div class="form-page">
+    <form class="form-card narrow" asp-action="Register" method="post">
+        <span class="eyebrow">GIA NHẬP CỘNG ĐỒNG ĐỌC</span>
+        <h1>Tạo tài khoản</h1>
+        <p class="muted">Lưu truyện yêu thích và cùng chia sẻ cảm nhận.</p>
+        <div asp-validation-summary="All" class="form-error"></div>
+
+        <label for="displayName">Tên hiển thị</label>
+        <input id="displayName" name="displayName" maxlength="80" required />
+
+        <label for="username">Tên đăng nhập</label>
+        <input id="username" name="username" minlength="3" maxlength="50" required />
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" maxlength="180" required />
+
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" type="password" minlength="8" required />
+
+        <button class="btn btn-dark btn-block" type="submit">Tạo tài khoản</button>
+        <p class="form-foot">
+            Đã có tài khoản? <a asp-action="Login">Đăng nhập</a>
+        </p>
+    </form>
+</div>
