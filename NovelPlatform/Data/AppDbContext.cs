@@ -38,6 +38,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasIndex(chapter => new { chapter.NovelId, chapter.Number })
             .IsUnique();
 
+        builder.Entity<Novel>()
+            .HasOne(novel => novel.Category)
+            .WithMany(category => category.Novels)
+            .HasForeignKey(novel => novel.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<Bookmark>()
             .HasKey(bookmark => new { bookmark.UserId, bookmark.NovelId });
 

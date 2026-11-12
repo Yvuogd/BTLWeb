@@ -1,4 +1,4 @@
-/* Truyện Chữ - chạy trên SQL Server / SQLEXPRESS một lần để tạo CSDL và dữ liệu mẫu. */
+﻿/* Truyện Chữ - chạy trên SQL Server / SQLEXPRESS một lần để tạo CSDL và dữ liệu mẫu. */
 IF DB_ID(N'NovelReadingPlatform') IS NULL CREATE DATABASE NovelReadingPlatform;
 
 GO
@@ -25,6 +25,7 @@ CREATE TABLE dbo.Users(Id int IDENTITY PRIMARY KEY,
     Bio nvarchar(500) NULL,
     Status nvarchar(20) NOT NULL,
     CreatedAt datetime2 NOT NULL CONSTRAINT DF_Users_Created DEFAULT SYSUTCDATETIME(),
+    SessionVersion uniqueidentifier NOT NULL CONSTRAINT DF_Users_SessionVersion DEFAULT '00000000-0000-0000-0000-000000000000',
     CONSTRAINT FK_Users_Roles FOREIGN KEY(RoleId) REFERENCES dbo.Roles(Id));
 
 CREATE TABLE dbo.Novels(Id int IDENTITY PRIMARY KEY,
@@ -103,51 +104,51 @@ INSERT dbo.Users(RoleId,
 (1,
     N'docgia',
     N'reader@novel.local',
-    N'ABEiM0RVZneImaq7zN3u/w==.RLD9xhWfRQQuLym4F+xJBbpv5NukL08d42pIFetlr+s=',
+    N'',
     N'Độc giả Mây',
-    N'Active'),
+    N'Blocked'),
     
 (2,
     N'tacgia',
     N'author@novel.local',
-    N'ABEiM0RVZneImaq7zN3u/w==.HY6igPvmbePjbYr4VaCkLSID80q0flLOAtwsgSNwH2g=',
+    N'',
     N'Minh An',
-    N'Active'),
+    N'Blocked'),
     
 (3,
     N'admin',
     N'admin@novel.local',
-    N'ABEiM0RVZneImaq7zN3u/w==.ZOyVcn8qHSut/8K/16htQXRG2Id7zVlAfCUp4r2G724=',
+    N'',
     N'Quản trị viên',
-    N'Active'),
+    N'Blocked'),
 
 (2,
     N'tacgia-ran-nuoc',
     N'tacgia-ran-nuoc@novel.local',
-    N'ABEiM0RVZneImaq7zN3u/w==.HY6igPvmbePjbYr4VaCkLSID80q0flLOAtwsgSNwH2g=',
+    N'',
     N'Tương Công Nạp Cá Thiếp Ba',
-    N'Active'),
+    N'Blocked'),
 
 (2,
     N'tacgia-dai-duong',
     N'tacgia-dai-duong@novel.local',
-    N'ABEiM0RVZneImaq7zN3u/w==.HY6igPvmbePjbYr4VaCkLSID80q0flLOAtwsgSNwH2g=',
+    N'',
     N'Truy Cần Thời Gian Đích Tiểu Oa Ngư',
-    N'Active'),
+    N'Blocked'),
 
 (2,
     N'tacgia-tay-mon',
     N'tacgia-tay-mon@novel.local',
-    N'ABEiM0RVZneImaq7zN3u/w==.HY6igPvmbePjbYr4VaCkLSID80q0flLOAtwsgSNwH2g=',
+    N'',
     N'Đạo Tâm Trường Thanh',
-    N'Active'),
+    N'Blocked'),
 
 (2,
     N'tacgia-hai-dao',
     N'tacgia-hai-dao@novel.local',
-    N'ABEiM0RVZneImaq7zN3u/w==.HY6igPvmbePjbYr4VaCkLSID80q0flLOAtwsgSNwH2g=',
+    N'',
     N'Lão Tưởng Trù Yên',
-    N'Active');
+    N'Blocked');
 
 INSERT dbo.Novels(AuthorId,
     CategoryId,
@@ -268,3 +269,67 @@ INSERT dbo.Comments(UserId,
     N'Nội dung chương mẫu dễ đọc, mong chờ phần tiếp theo.');
 
 GO
+
+GO
+SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+DECLARE @lockResult int;
+EXEC @lockResult = sp_getapplock
+    @Resource = N'NovelPlatform.Seed', @LockMode = N'Exclusive', @LockOwner = N'Transaction';
+IF @lockResult < 0 THROW 50000, 'Unable to lock sample-data initialization.', 1;
+
+DECLARE @Stories table (
+    Title nvarchar(180), Username nvarchar(50), Author nvarchar(80),
+    Category nvarchar(60), Description nvarchar(2500), Cover nvarchar(300),
+    Number int, Chapter nvarchar(180)
+);
+INSERT @Stories VALUES
+    (N'Đại Hạ Thánh Đình, Cả Triều Toàn Là Thiên Cổ Người Tài', N'tacgia-dai-ha', N'Túy Diệc Vô Miên', N'Cổ Đại, Hệ Thống', N'Xuyên đến dị giới trong thân phận công tử, nhân vật chính thức tỉnh hệ thống Nhân Hoàng. Với các danh tướng và mưu sĩ như Hạng Vũ, Hoắc Khứ Bệnh và Gia Cát Lượng, hắn bắt đầu xây dựng Đại Hạ giữa cuộc tranh bá của vạn tộc.', N'/images/cover-dai-ha.jpg', 1, N'Lời gọi của Nhân Hoàng'),
+    (N'Đại Hạ Thánh Đình, Cả Triều Toàn Là Thiên Cổ Người Tài', N'tacgia-dai-ha', N'Túy Diệc Vô Miên', N'Cổ Đại, Hệ Thống', N'Xuyên đến dị giới trong thân phận công tử, nhân vật chính thức tỉnh hệ thống Nhân Hoàng. Với các danh tướng và mưu sĩ như Hạng Vũ, Hoắc Khứ Bệnh và Gia Cát Lượng, hắn bắt đầu xây dựng Đại Hạ giữa cuộc tranh bá của vạn tộc.', N'/images/cover-dai-ha.jpg', 2, N'Danh tướng đầu tiên'),
+    (N'Đại Hạ Thánh Đình, Cả Triều Toàn Là Thiên Cổ Người Tài', N'tacgia-dai-ha', N'Túy Diệc Vô Miên', N'Cổ Đại, Hệ Thống', N'Xuyên đến dị giới trong thân phận công tử, nhân vật chính thức tỉnh hệ thống Nhân Hoàng. Với các danh tướng và mưu sĩ như Hạng Vũ, Hoắc Khứ Bệnh và Gia Cát Lượng, hắn bắt đầu xây dựng Đại Hạ giữa cuộc tranh bá của vạn tộc.', N'/images/cover-dai-ha.jpg', 3, N'Dựng cờ Đại Hạ'),
+    (N'Phù Đạo Chi Tổ / Tạp Dịch Đệ Tử Không Đường Ra? Ta Lấy Vẽ Bùa Đạo Trường Sinh', N'tacgia-phu-dao', N'Phiên Gia Trám Đại Tương', N'Tiên Hiệp, Huyền Huyễn, Cổ Đại', N'Một thiếu niên chăn trâu cứu đệ tử tạp dịch và bước vào Tu Tiên giới. Sau khi thức tỉnh huyết mạch ngọc phù, cậu theo đuổi trường sinh bằng nghề vẽ bùa.', N'/images/cover-phu-dao.jpg', 1, N'Thiếu niên chăn trâu'),
+    (N'Phù Đạo Chi Tổ / Tạp Dịch Đệ Tử Không Đường Ra? Ta Lấy Vẽ Bùa Đạo Trường Sinh', N'tacgia-phu-dao', N'Phiên Gia Trám Đại Tương', N'Tiên Hiệp, Huyền Huyễn, Cổ Đại', N'Một thiếu niên chăn trâu cứu đệ tử tạp dịch và bước vào Tu Tiên giới. Sau khi thức tỉnh huyết mạch ngọc phù, cậu theo đuổi trường sinh bằng nghề vẽ bùa.', N'/images/cover-phu-dao.jpg', 2, N'Huyết mạch ngọc phù'),
+    (N'Phù Đạo Chi Tổ / Tạp Dịch Đệ Tử Không Đường Ra? Ta Lấy Vẽ Bùa Đạo Trường Sinh', N'tacgia-phu-dao', N'Phiên Gia Trám Đại Tương', N'Tiên Hiệp, Huyền Huyễn, Cổ Đại', N'Một thiếu niên chăn trâu cứu đệ tử tạp dịch và bước vào Tu Tiên giới. Sau khi thức tỉnh huyết mạch ngọc phù, cậu theo đuổi trường sinh bằng nghề vẽ bùa.', N'/images/cover-phu-dao.jpg', 3, N'Lá bùa đầu tiên'),
+    (N'Già Thiên: Khai Cục Bái Nhập Dao Quang Thánh Địa', N'tacgia-gia-thien', N'Ngã Ái Cật Điềm Tống', N'Huyền Huyễn, Xuyên Không, Cổ Đại', N'Lý Nghiêu xuyên đến thế giới Già Thiên và nhập môn ở Hằng Dương Động Thiên. Dao Quang Thánh Địa đến ngay khi hắn vừa hoàn thành tu luyện cơ sở, mang theo cơ duyên liên quan tới Long Văn Hắc Kim Đỉnh.', N'/images/cover-gia-thien.jpg', 1, N'Hằng Dương Động Thiên'),
+    (N'Già Thiên: Khai Cục Bái Nhập Dao Quang Thánh Địa', N'tacgia-gia-thien', N'Ngã Ái Cật Điềm Tống', N'Huyền Huyễn, Xuyên Không, Cổ Đại', N'Lý Nghiêu xuyên đến thế giới Già Thiên và nhập môn ở Hằng Dương Động Thiên. Dao Quang Thánh Địa đến ngay khi hắn vừa hoàn thành tu luyện cơ sở, mang theo cơ duyên liên quan tới Long Văn Hắc Kim Đỉnh.', N'/images/cover-gia-thien.jpg', 2, N'Dao Quang đến'),
+    (N'Già Thiên: Khai Cục Bái Nhập Dao Quang Thánh Địa', N'tacgia-gia-thien', N'Ngã Ái Cật Điềm Tống', N'Huyền Huyễn, Xuyên Không, Cổ Đại', N'Lý Nghiêu xuyên đến thế giới Già Thiên và nhập môn ở Hằng Dương Động Thiên. Dao Quang Thánh Địa đến ngay khi hắn vừa hoàn thành tu luyện cơ sở, mang theo cơ duyên liên quan tới Long Văn Hắc Kim Đỉnh.', N'/images/cover-gia-thien.jpg', 3, N'Long Văn Hắc Kim Đỉnh'),
+    (N'Hỏa Hệ Pháp Gia Tu Luyện Chỉ Nam', N'tacgia-hoa-he', N'Hàm Ngư Cật Tây Qua', N'Huyền Huyễn, Khác', N'Trần Dật nhớ lại kiếp trước khi bị cuốn vào một thế giới trò chơi. Với giao diện bí ẩn và năng lực điều khiển lửa, hắn tìm con đường tu luyện của riêng mình.', N'/images/cover-hoa-he.jpg', 1, N'Giao diện bí ẩn'),
+    (N'Hỏa Hệ Pháp Gia Tu Luyện Chỉ Nam', N'tacgia-hoa-he', N'Hàm Ngư Cật Tây Qua', N'Huyền Huyễn, Khác', N'Trần Dật nhớ lại kiếp trước khi bị cuốn vào một thế giới trò chơi. Với giao diện bí ẩn và năng lực điều khiển lửa, hắn tìm con đường tu luyện của riêng mình.', N'/images/cover-hoa-he.jpg', 2, N'Ngọn lửa đầu tiên'),
+    (N'Hỏa Hệ Pháp Gia Tu Luyện Chỉ Nam', N'tacgia-hoa-he', N'Hàm Ngư Cật Tây Qua', N'Huyền Huyễn, Khác', N'Trần Dật nhớ lại kiếp trước khi bị cuốn vào một thế giới trò chơi. Với giao diện bí ẩn và năng lực điều khiển lửa, hắn tìm con đường tu luyện của riêng mình.', N'/images/cover-hoa-he.jpg', 3, N'Bước vào thế giới trò chơi'),
+    (N'Hoàn Mỹ Thế Giới Chi Duy Ta Vĩnh Hằng', N'tacgia-hoan-my', N'Phong Vũ Kinh Thế', N'Huyền Huyễn, Xuyên Không, Cổ Đại', N'Xuyên qua dòng thời gian và biển vận mệnh, nhân vật chính đi tìm sự vĩnh hằng. Trên hành trình ấy, hắn gặp Nguyệt Thiền và khám phá những bí ẩn giữa cổ kim.', N'/images/cover-hoan-my.jpg', 1, N'Vượt biển vận mệnh'),
+    (N'Hoàn Mỹ Thế Giới Chi Duy Ta Vĩnh Hằng', N'tacgia-hoan-my', N'Phong Vũ Kinh Thế', N'Huyền Huyễn, Xuyên Không, Cổ Đại', N'Xuyên qua dòng thời gian và biển vận mệnh, nhân vật chính đi tìm sự vĩnh hằng. Trên hành trình ấy, hắn gặp Nguyệt Thiền và khám phá những bí ẩn giữa cổ kim.', N'/images/cover-hoan-my.jpg', 2, N'Gặp Nguyệt Thiền'),
+    (N'Hoàn Mỹ Thế Giới Chi Duy Ta Vĩnh Hằng', N'tacgia-hoan-my', N'Phong Vũ Kinh Thế', N'Huyền Huyễn, Xuyên Không, Cổ Đại', N'Xuyên qua dòng thời gian và biển vận mệnh, nhân vật chính đi tìm sự vĩnh hằng. Trên hành trình ấy, hắn gặp Nguyệt Thiền và khám phá những bí ẩn giữa cổ kim.', N'/images/cover-hoan-my.jpg', 3, N'Một niệm vĩnh hằng'),
+    (N'Phàm Nhân Tu Tiên: Khai Cục Đạt Được Tam Mẫu Linh Điền / Tiên Đạo Trường Thanh', N'tacgia-linh-dien', N'Đặt Danh', N'Tiên Hiệp, Huyền Huyễn, Xuyên Không', N'Mang theo ba mẫu linh điền đến thế giới tu tiên, nhân vật chính được nhị thúc dẫn vào tiên đồ. Là một tán tu, hắn dựa vào trồng trọt và tu luyện để từng bước theo đuổi trường sinh.', N'/images/cover-linh-dien.jpg', 1, N'Ba mẫu linh điền'),
+    (N'Phàm Nhân Tu Tiên: Khai Cục Đạt Được Tam Mẫu Linh Điền / Tiên Đạo Trường Thanh', N'tacgia-linh-dien', N'Đặt Danh', N'Tiên Hiệp, Huyền Huyễn, Xuyên Không', N'Mang theo ba mẫu linh điền đến thế giới tu tiên, nhân vật chính được nhị thúc dẫn vào tiên đồ. Là một tán tu, hắn dựa vào trồng trọt và tu luyện để từng bước theo đuổi trường sinh.', N'/images/cover-linh-dien.jpg', 2, N'Nhị thúc dẫn đường'),
+    (N'Phàm Nhân Tu Tiên: Khai Cục Đạt Được Tam Mẫu Linh Điền / Tiên Đạo Trường Thanh', N'tacgia-linh-dien', N'Đặt Danh', N'Tiên Hiệp, Huyền Huyễn, Xuyên Không', N'Mang theo ba mẫu linh điền đến thế giới tu tiên, nhân vật chính được nhị thúc dẫn vào tiên đồ. Là một tán tu, hắn dựa vào trồng trọt và tu luyện để từng bước theo đuổi trường sinh.', N'/images/cover-linh-dien.jpg', 3, N'Vụ mùa đầu tiên');
+
+DECLARE @AddedAuthors table (Username nvarchar(50));
+INSERT dbo.Categories (Name, Description)
+SELECT DISTINCT story.Category, N'Thể loại: ' + story.Category
+FROM @Stories story
+WHERE NOT EXISTS (SELECT 1 FROM dbo.Categories WHERE Name = story.Category);
+
+INSERT dbo.Users (RoleId, Username, Email, PasswordHash, DisplayName, Status)
+OUTPUT inserted.Username INTO @AddedAuthors
+SELECT DISTINCT role.Id, story.Username, story.Username + N'@novel.local', N'', story.Author, N'Blocked'
+FROM @Stories story
+CROSS JOIN dbo.Roles role
+WHERE role.Name = N'Author'
+  AND NOT EXISTS (SELECT 1 FROM dbo.Users WHERE Username = story.Username);
+
+INSERT dbo.Novels (AuthorId, CategoryId, Title, Description, CoverImage, Status, ReviewStatus)
+SELECT author.Id, category.Id, story.Title, story.Description, story.Cover, N'Ongoing', N'Approved'
+FROM @Stories story
+JOIN @AddedAuthors added ON added.Username = story.Username
+JOIN dbo.Users author ON author.Username = story.Username
+JOIN dbo.Categories category ON category.Name = story.Category
+WHERE story.Number = 1;
+
+INSERT dbo.Chapters (NovelId, Number, Title, Content, Status, PublishedAt)
+SELECT novel.Id, story.Number, story.Chapter,
+    CONCAT(N'Nội dung chương ', story.Number, N' (bản mẫu thử nghiệm).'), N'Published', SYSUTCDATETIME()
+FROM @Stories story
+JOIN @AddedAuthors added ON added.Username = story.Username
+JOIN dbo.Users author ON author.Username = story.Username
+JOIN dbo.Novels novel ON novel.AuthorId = author.Id AND novel.Title = story.Title;
+COMMIT;

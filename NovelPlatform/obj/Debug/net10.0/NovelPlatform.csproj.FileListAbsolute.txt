@@ -75,7 +75,6 @@ C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\7lbl8sitrm-{0}-pkecbm8wha-pkecbm8wha.gz
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\uo3hgl3802-{0}-6gx70reuv8-6gx70reuv8.gz
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\avnv9setua-{0}-pjv4vy1ixw-pjv4vy1ixw.gz
-C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\y6lhbhrmr1-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\8mdm78ckk2-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\n9yq7erve4-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\dygc3m437o-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -204,5 +203,12 @@ C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\repair\runtime
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\repair\runtimes\win-arm64\native\msalruntime_arm64.dll
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\repair\runtimes\win-x64\native\msalruntime.dll
 C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\repair\runtimes\win-x86\native\msalruntime_x86.dll
-C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
-C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\48k2kz355c-{0}-tqr10viacl-tqr10viacl.gz
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\Debug\net10.0\Microsoft.OpenApi.dll
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\Debug\net10.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\bin\Debug\net10.0\runtimes\win\lib\net10.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\NovelPlatform.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\y6lhbhrmr1-{0}-ceic93mcyh-ceic93mcyh.gz
+C:\Users\Admin\OneDrive\Documents\ChatGPT\TKWEB\NovelPlatform\obj\Debug\net10.0\compressed\48k2kz355c-{0}-sqmlm9dpjb-sqmlm9dpjb.gz

@@ -38,6 +38,7 @@ public class AppUser
 
     [MaxLength(20)]
     public string Status { get; set; } = "Active";
+    public Guid SessionVersion { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public List<Novel> Novels { get; set; } = [];

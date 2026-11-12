@@ -1,36 +1,41 @@
-# Truyện Chữ — Nền tảng đọc tiểu thuyết
+# Truyện Chữ
 
-Website ASP.NET Core MVC được dựng theo yêu cầu trong báo cáo BTL LTWEB. Giao diện lấy cảm hứng từ bố cục trang đọc truyện tham khảo, dùng thương hiệu Truyện Chữ. Dự án dùng SQL Server Express (`localhost\SQLEXPRESS`), EF Core và khởi tạo cơ sở dữ liệu `NovelReadingPlatform` cùng dữ liệu mẫu khi chạy lần đầu. Bìa truyện là các minh họa SVG tự tạo trong `wwwroot/images`.
+Nền tảng đọc tiểu thuyết dùng ASP.NET Core MVC, EF Core và SQL Server. Độc giả có thể tìm truyện, đọc chương, lưu truyện, đánh giá và bình luận. Tác giả quản lý truyện, chương và ảnh bìa trong Studio. Quản trị viên kiểm duyệt nội dung, quản lý thể loại và khóa tài khoản.
 
-## Mở bằng Visual Studio
+## Chạy trên máy local
 
-Mở `NovelPlatform.slnx` bằng **Visual Studio 2022/18 Community**, chọn cấu hình `https` hoặc `http`, rồi nhấn **F5**. Gói EF Core SQL Server 10.0.12 được khai báo trong project. Nếu Visual Studio cần restore package, để restore hoàn tất trước khi chạy.
+Cần .NET 10 SDK và SQL Server Express. Mở `NovelPlatform.slnx` và chạy profile `https`. Trong môi trường Development, ứng dụng mặc định kết nối với SQL Server Express trên máy bằng tài khoản Windows hiện tại. Nếu cần dùng máy chủ hoặc cơ sở dữ liệu khác, đặt cấu hình trong .NET User Secrets.
 
-Ứng dụng kết nối tới `localhost\SQLEXPRESS`. Cần có SQL Server Express chạy trên máy. Khi khởi động, ứng dụng tạo database/schema nếu chưa tồn tại và nạp dữ liệu mẫu. Có thể chạy `database/01-create-and-seed.sql` trong SSMS thay cho bước khởi tạo của ứng dụng; chạy script trước thì database sẽ được tạo sẵn với cùng bộ dữ liệu demo.
+```powershell
+dotnet user-secrets set --project NovelPlatform/NovelPlatform.csproj 'ConnectionStrings:NovelDb' 'Server=lpc:.\SQLEXPRESS;Database=NovelReadingPlatform;Integrated Security=True;TrustServerCertificate=True'
+```
 
-## Tài khoản mẫu
+Đặt mật khẩu riêng cho các tài khoản demo bằng khóa `DemoAccounts:admin`, `DemoAccounts:tacgia` và `DemoAccounts:docgia`. Mỗi mật khẩu cần từ 12 đến 128 ký tự. Tên đăng nhập tương ứng là `admin`, `tacgia`, `docgia`. Có thể xem hoặc đổi cấu hình cục bộ qua **Manage User Secrets** trong Visual Studio. Trên máy triển khai, dùng secret store hoặc các biến môi trường `ConnectionStrings__NovelDb` và `DemoAccounts__<username>`.
 
-| Vai trò | Tên đăng nhập | Mật khẩu |
+Khi cập nhật từ bản cũ, ứng dụng thu hồi mật khẩu demo mặc định và kích hoạt lại ba tài khoản demo nếu đã đặt mật khẩu mới. Các tài khoản mẫu đại diện cho tác giả trên bìa chỉ dùng để gắn tên tác giả vào truyện. Khóa tài khoản thu hồi phiên đã cấp và khi mở khóa cần đăng nhập lại.
+
+## Cơ sở dữ liệu mẫu
+
+Ứng dụng tự tạo schema và dữ liệu khi khởi động. Có thể chạy [database/01-create-and-seed.sql](database/01-create-and-seed.sql) bằng SSMS để tạo trước cơ sở dữ liệu với cùng mười truyện. Lần khởi động đầu tiên sẽ áp dụng cấu hình tài khoản demo. Có thể chỉ khởi tạo dữ liệu bằng lệnh sau.
+
+```powershell
+dotnet run --project NovelPlatform/NovelPlatform.csproj -- --seed-only
+```
+
+Sáu truyện mới lấy tên, tác giả, thể loại và bìa từ ảnh tham chiếu, với giới thiệu viết lại và ba chương minh họa mỗi bộ. Số chương của trang nguồn không được dùng làm số chương đã đăng tại Truyện Chữ. Seed thêm truyện vào cơ sở dữ liệu đã có và không tạo lại truyện mẫu đã bị xóa qua Studio.
+
+## API và kiểm thử
+
+Swagger UI nằm tại `/swagger`. API công khai chỉ trả truyện đã duyệt và chương đã xuất bản.
+
+| HTTP | Đường dẫn | Chức năng |
 |---|---|---|
-| Độc giả | `docgia` | `DocGia123!` |
-| Tác giả | `tacgia` | `TacGia123!` |
-| Quản trị viên | `admin` | `Admin123!` |
+| GET | `/api/novels?page=2&q=...&category=...&genre=...` | Tìm, lọc và phân trang, tối đa sáu truyện mỗi trang |
+| GET | `/api/novels/{id}` | Thông tin truyện |
+| GET | `/api/novels/{id}/chapters` | Danh sách chương công khai |
 
-Tài khoản đăng ký mới có vai trò Độc giả. Dữ liệu mẫu gồm 4 truyện theo các ảnh bìa được cung cấp, tất cả ở trạng thái đang ra; mỗi truyện có từ 3 đến 5 chương với nội dung mẫu ngắn. Bộ dữ liệu cũng có dấu trang, điểm đánh giá và bình luận minh họa.
+Xem [TEST-CASES.md](TEST-CASES.md) cho các ca kiểm thử. Ảnh bìa do người dùng tải lên được lưu trong `wwwroot/uploads/covers`. Khi triển khai cần lưu thư mục này trên bộ nhớ bền vững.
 
-## Quy trình đăng và kiểm duyệt
+## Bản địa hóa
 
-- Tác giả tạo truyện và gửi chương từ **Studio tác giả**. Truyện/chương mới có trạng thái chờ duyệt nên chưa hiển thị cho độc giả.
-- Quản trị viên mở **Quản trị**, xem thông tin truyện hoặc nội dung chương rồi chọn **Duyệt và đăng** hoặc **Từ chối**.
-- Quản trị viên có thể tạo truyện và đăng chương trực tiếp từ Studio; nội dung do Admin tạo được xuất bản ngay.
-- Truyện chỉ xuất hiện công khai khi được duyệt; chương chỉ đọc được sau khi được duyệt và xuất bản.
-
-## Các chức năng
-
-- Tìm kiếm truyện theo tên, tác giả hoặc thể loại; lọc thể loại.
-- Xem trang truyện, đọc chương, chuyển chương trước/sau.
-- Đăng ký/đăng nhập, lưu truyện, đánh giá 1–5 sao, viết bình luận.
-- Studio tác giả: tạo truyện, thêm chương, xem trạng thái duyệt.
-- Quản trị: duyệt/từ chối truyện và chương, khóa/mở tài khoản, thêm thể loại và gỡ bình luận.
-
-Schema gồm các bảng Roles, Users, Categories, Novels, Chapters, Bookmarks, Ratings và Comments; có khóa ngoại, unique constraints cho tài khoản/chương, khóa kép cho đánh dấu/đánh giá và kiểm tra điểm 1–5.
+Giao diện hiện dùng tiếng Việt, HTML `lang="vi"`, cấu hình định dạng `vi-VN` và dữ liệu Unicode trong SQL Server. Thời điểm được lưu theo UTC và hiển thị theo múi giờ máy chủ. Với triển khai nhiều khu vực, các điểm cần bản địa hóa gồm thông báo xác thực và validation, nhãn thể loại, định dạng ngày giờ theo người đọc và quy tắc tìm kiếm có dấu. Tên truyện, tác giả và nội dung chương giữ nguyên ngôn ngữ nhập vào.

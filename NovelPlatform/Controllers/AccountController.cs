@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ using NovelPlatform.Models;
 
 namespace NovelPlatform.Controllers;
 
-public class AccountController(AppDbContext db) : Controller
+public class AccountController(AppDbContext db, ILogger<AccountController> logger) : Controller
 {
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
@@ -24,6 +25,13 @@ public class AccountController(AppDbContext db) : Controller
         string password,
         string? returnUrl = null)
     {
+        if (string.IsNullOrWhiteSpace(username) || username.Length > 180 || password is not { Length: > 0 and <= 128 })
+        {
+            ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu chưa đúng.");
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
         var user = await db.Users
             .Include(item => item.Role)
             .FirstOrDefaultAsync(item =>
@@ -33,13 +41,15 @@ public class AccountController(AppDbContext db) : Controller
             || user.Status != "Active"
             || !SeedData.Verify(password, user.PasswordHash))
         {
+            logger.LogWarning("Login rejected");
             ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu chưa đúng.");
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
         await SignIn(user);
-        return LocalRedirect(returnUrl ?? Url.Action("Index", "Home")!);
+        logger.LogInformation("User {UserId} signed in", user.Id);
+        return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl) : RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
@@ -59,10 +69,11 @@ public class AccountController(AppDbContext db) : Controller
 
         if (username.Length < 3
             || username.Length > 50
-            || password.Length < 8
+            || password is not { Length: >= 8 and <= 128 }
             || displayName.Length is < 1 or > 80
             || email.Length > 180
-            || !email.Contains('@'))
+            || !new EmailAddressAttribute().IsValid(email)
+            || email.Length == 0)
         {
             ModelState.AddModelError("", "Vui lòng nhập tên đăng nhập từ 3 ký tự, email hợp lệ, tên hiển thị và mật khẩu từ 8 ký tự.");
             return View();
@@ -96,6 +107,7 @@ public class AccountController(AppDbContext db) : Controller
         await db.SaveChangesAsync();
         user.Role = readerRole;
         await SignIn(user);
+        logger.LogInformation("Reader account {UserId} created", user.Id);
 
         return RedirectToAction("Index", "Home");
     }
@@ -114,6 +126,8 @@ public class AccountController(AppDbContext db) : Controller
         {
             new Claim(ClaimTypes.Name, user.DisplayName),
             new Claim(ClaimTypes.Role, user.Role.Name),
+            new Claim("session_stamp", SeedData.SessionStamp(user.PasswordHash)),
+            new Claim("session_version", user.SessionVersion.ToString()),
             new Claim("uid", user.Id.ToString())
         };
 

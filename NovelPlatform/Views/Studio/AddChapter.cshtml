@@ -1,34 +1,33 @@
-@model NovelPlatform.Models.Chapter
+@model NovelPlatform.Models.ChapterInput
 @{
-    ViewData["Title"] = "Thêm chương";
+    int chapterId = ViewBag.ChapterId;
+    bool editing = chapterId != 0;
     var novel = (NovelPlatform.Models.Novel)ViewBag.Novel;
+    ViewData["Title"] = editing ? "Sửa chương" : "Thêm chương";
 }
 
 <div class="form-page">
-    <form class="form-card narrow" asp-action="AddChapter" method="post">
+    <form class="form-card narrow" asp-action="@(editing ? "EditChapter" : "AddChapter")"
+          asp-route-id="@(editing ? chapterId : novel.Id)" method="post">
         <a class="back-link" asp-action="Index">← Studio</a>
         <span class="eyebrow">@novel.Title</span>
-        <h1>Đăng chương mới</h1>
-        <input asp-for="NovelId" type="hidden" />
+        <h1>@ViewData["Title"]</h1>
         <div asp-validation-summary="All" class="form-error"></div>
 
         <label asp-for="Number">Số chương</label>
         <input asp-for="Number" type="number" min="1" required />
-        <span asp-validation-for="Number" class="form-error"></span>
 
         <label asp-for="Title">Tên chương</label>
         <input asp-for="Title" maxlength="180" required />
-        <span asp-validation-for="Title" class="form-error"></span>
 
         <label asp-for="Content">Nội dung</label>
-        <textarea asp-for="Content" rows="18" required placeholder="Viết nội dung chương ở đây…"></textarea>
-        <span asp-validation-for="Content" class="form-error"></span>
+        <textarea asp-for="Content" rows="18" maxlength="100000" required></textarea>
 
         @if (!User.IsInRole("Admin"))
         {
-            <p class="form-hint">Chương sẽ ở trạng thái chờ duyệt và chưa hiển thị với độc giả.</p>
+            <p class="form-hint">Chương sẽ hiển thị sau khi được duyệt.</p>
         }
-        <button class="btn btn-dark btn-block" type="submit">Gửi chương</button>
+        <button class="btn btn-dark btn-block" type="submit">Lưu chương</button>
     </form>
 </div>
 

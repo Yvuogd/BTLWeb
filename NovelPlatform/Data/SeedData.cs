@@ -4,7 +4,7 @@ using NovelPlatform.Models;
 
 namespace NovelPlatform.Data;
 
-public static class SeedData
+public static partial class SeedData
 {
     private static readonly SampleStory[] SampleStories =
     [
@@ -46,7 +46,7 @@ public static class SeedData
             ["Ngày đầu trên đảo", "Tiếng lòng đầu tiên", "Tín hiệu cầu cứu", "Đêm giữa biển khơi"])
     ];
 
-    public static async Task InitializeAsync(AppDbContext db)
+    public static async Task InitializeAsync(AppDbContext db, IConfiguration configuration)
     {
         await db.Database.EnsureCreatedAsync();
 
@@ -58,9 +58,31 @@ public static class SeedData
                 ADD ReviewStatus nvarchar(20) NOT NULL
                     CONSTRAINT DF_Novels_ReviewStatus DEFAULT N'Approved' WITH VALUES;
             END
+            IF COL_LENGTH(N'dbo.Users', N'SessionVersion') IS NULL
+            BEGIN
+                ALTER TABLE dbo.Users
+                ADD SessionVersion uniqueidentifier NOT NULL
+                    CONSTRAINT DF_Users_SessionVersion DEFAULT '00000000-0000-0000-0000-000000000000' WITH VALUES;
+            END
+            """);
+
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        await db.Database.ExecuteSqlRawAsync("""
+            DECLARE @result int;
+            EXEC @result = sp_getapplock
+                @Resource = N'NovelPlatform.Seed', @LockMode = N'Exclusive', @LockOwner = N'Transaction';
+            IF @result < 0 THROW 50000, 'Unable to lock sample-data initialization.', 1;
             """);
 
         await ReplaceExistingSampleStoriesAsync(db);
+        await InitializeOriginalStoriesAsync(db);
+        await AddNewStoriesAsync(db);
+        await ConfigureDemoAccountsAsync(db, configuration);
+        await transaction.CommitAsync();
+    }
+
+    private static async Task InitializeOriginalStoriesAsync(AppDbContext db)
+    {
 
         if (await db.Users.AnyAsync())
         {
@@ -78,19 +100,18 @@ public static class SeedData
         await db.SaveChangesAsync();
 
         var reader = NewUser(
-            "docgia", "reader@novel.local", "Độc giả Mây", roles[0].Id, "DocGia123!");
+            "docgia", "reader@novel.local", "Độc giả Mây", roles[0].Id);
         var admin = NewUser(
-            "admin", "admin@novel.local", "Quản trị viên", roles[2].Id, "Admin123!");
+            "admin", "admin@novel.local", "Quản trị viên", roles[2].Id);
         var authorAccount = NewUser(
-            "tacgia", "author@novel.local", "Minh An", roles[1].Id, "TacGia123!");
+            "tacgia", "author@novel.local", "Minh An", roles[1].Id);
 
         var authors = SampleStories
             .Select(story => NewUser(
                 story.AuthorUsername,
                 $"{story.AuthorUsername}@novel.local",
                 story.AuthorName,
-                roles[1].Id,
-                "TacGia123!"))
+                roles[1].Id))
             .ToArray();
 
         db.Users.AddRange([reader, authorAccount, .. authors, admin]);
@@ -221,8 +242,7 @@ public static class SeedData
                     story.AuthorUsername,
                     $"{story.AuthorUsername}@novel.local",
                     story.AuthorName,
-                    authorRole.Id,
-                    "TacGia123!");
+                    authorRole.Id);
                 db.Users.Add(author);
             }
             else
@@ -297,8 +317,7 @@ public static class SeedData
         string username,
         string email,
         string displayName,
-        int roleId,
-        string password)
+        int roleId)
     {
         return new AppUser
         {
@@ -306,8 +325,8 @@ public static class SeedData
             Email = email,
             DisplayName = displayName,
             RoleId = roleId,
-            PasswordHash = Hash(password),
-            Status = "Active"
+            PasswordHash = "",
+            Status = "Blocked"
         };
     }
 
@@ -329,6 +348,7 @@ public static class SeedData
         try
         {
             var parts = encoded.Split('.');
+            if (parts.Length != 2 || string.IsNullOrEmpty(password)) return false;
             var expectedHash = Convert.FromBase64String(parts[1]);
             var actualHash = Rfc2898DeriveBytes.Pbkdf2(
                 password,
@@ -344,4 +364,8 @@ public static class SeedData
             return false;
         }
     }
+
+    public static string SessionStamp(string passwordHash) =>
+        Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(passwordHash)));
 }
+

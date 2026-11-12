@@ -3,42 +3,21 @@
     ViewData["Title"] = "Đọc truyện online";
 
     var categories = ViewBag.Categories as List<NovelPlatform.Models.Category> ?? [];
-    var featuredNovels = Model.Take(8).ToList();
-    var completedNovels = Model
-        .Where(novel => novel.Status == "Completed")
-        .ToList();
-    var recommendedNovels = Model
-        .OrderByDescending(novel => novel.Ratings.Count == 0
-            ? 0
-            : novel.Ratings.Average(rating => rating.Score))
-        .Take(5)
-        .ToList();
-    var selectedGenre = ViewBag.Genre as string;
 }
 
 <div class="tc-welcome-banner">
     Truyện Chữ <span>— Kho truyện online dành cho bạn</span>
-    @if (!string.IsNullOrWhiteSpace(selectedGenre))
-    {
-        <span class="tc-active-filter">
-            Đang lọc: @selectedGenre
-            <a asp-action="Index">Xóa lọc</a>
-        </span>
-    }
+
 </div>
 
-<section class="tc-panel tc-hot" id="hot">
-    <div class="tc-section-head">
-        <div>
-            <span class="tc-kicker">ĐƯỢC ĐỌC NHIỀU</span>
-            <h1>Truyện hot</h1>
-        </div>
         <form asp-controller="Home"
               asp-action="Index"
               method="get"
-              class="tc-filter">
+              class="tc-filter catalog-filter" data-catalog-filter>
+            <label for="catalog-query">Tìm truyện</label>
+            <input id="catalog-query" name="q" type="search" value="@ViewBag.Query" maxlength="180" />
             <label for="hot-category">Thể loại</label>
-            <select id="hot-category" name="category" onchange="this.form.submit()">
+            <select id="hot-category" name="category">
                 <option value="">Tất cả</option>
                 @foreach (var category in categories)
                 {
@@ -52,85 +31,12 @@
                     }
                 }
             </select>
+            <button class="btn btn-outline" type="submit">Lọc</button>
         </form>
-    </div>
-
-    <div class="tc-featured-row">
-        @foreach (var novel in featuredNovels)
-        {
-            <a class="tc-featured-card" asp-action="Details" asp-route-id="@novel.Id">
-                <div class="tc-featured-cover">
-                    <img src="@(novel.CoverImage ?? "/images/cloud-library.svg")"
-                         alt="Bìa @novel.Title" />
-                    <span>@(novel.Status == "Completed" ? "FULL" : "HOT")</span>
-                </div>
-                <h2>@novel.Title</h2>
-                <small>@novel.Category.Name · @novel.Chapters.Count chương</small>
-            </a>
-        }
-
-        @if (featuredNovels.Count == 0)
-        {
-            <p class="tc-empty">Chưa có truyện trong thể loại này.</p>
-        }
-    </div>
-</section>
-
 <div class="tc-content-grid">
-    <section class="tc-panel tc-latest" id="latest">
-        <div class="tc-section-head">
-            <div>
-                <span class="tc-kicker">VỪA ĐƯỢC CẬP NHẬT</span>
-                <h2>Truyện mới cập nhật</h2>
-            </div>
-            <span class="tc-count">@Model.Count truyện</span>
-        </div>
-
-        <div class="tc-update-list">
-            @foreach (var novel in Model)
-            {
-                var latestChapter = novel.Chapters
-                    .OrderByDescending(chapter => chapter.Number)
-                    .FirstOrDefault();
-
-                <article class="tc-update-row">
-                    <a class="tc-update-title"
-                       asp-action="Details"
-                       asp-route-id="@novel.Id">
-                        @novel.Title
-                    </a>
-                    @if (latestChapter is not null)
-                    {
-                        <a class="tc-update-chapter"
-                           asp-action="Read"
-                           asp-route-id="@latestChapter.Id">
-                            Chương @latestChapter.Number: @latestChapter.Title
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="tc-update-chapter">Chưa có chương</span>
-                    }
-                    <div class="tc-update-meta">
-                        <a asp-action="Index" asp-route-category="@novel.CategoryId">
-                            @novel.Category.Name
-                        </a>
-                        <span>
-                            @(novel.Status == "Completed" ? "Đã hoàn thành" : "Đang ra")
-                        </span>
-                    </div>
-                </article>
-            }
-
-            @if (Model.Count == 0)
-            {
-                <div class="tc-empty">
-                    Không tìm thấy truyện phù hợp. Hãy thử từ khóa hoặc thể loại khác.
-                </div>
-            }
-        </div>
-    </section>
-
+    <div id="novel-catalog" aria-live="polite">
+        <partial name="_Catalog" model="Model" />
+    </div>
     <aside class="tc-sidebar">
         <section class="tc-panel" id="genre-list">
             <div class="tc-section-head">
@@ -150,60 +56,6 @@
             </div>
         </section>
 
-        <section class="tc-panel tc-recommended">
-            <div class="tc-section-head">
-                <div>
-                    <span class="tc-kicker">GỢI Ý CHO BẠN</span>
-                    <h2>Truyện đề cử</h2>
-                </div>
-            </div>
-            <ol>
-                @for (var index = 0; index < recommendedNovels.Count; index++)
-                {
-                    var novel = recommendedNovels[index];
-                    var rating = novel.Ratings.Count == 0
-                        ? "Mới"
-                        : novel.Ratings.Average(item => item.Score).ToString("0.0");
-
-                    <li>
-                        <span class="tc-rank">@(index + 1)</span>
-                        <a asp-action="Details" asp-route-id="@novel.Id">
-                            @novel.Title
-                            <small>@novel.Category.Name · ★ @rating</small>
-                        </a>
-                    </li>
-                }
-            </ol>
-        </section>
     </aside>
 </div>
 
-<section class="tc-panel tc-completed" id="completed">
-    <div class="tc-section-head">
-        <div>
-            <span class="tc-kicker">ĐỌC TRỌN BỘ</span>
-            <h2>Truyện đã hoàn thành</h2>
-        </div>
-        <span class="tc-count">@completedNovels.Count truyện</span>
-    </div>
-
-    <div class="tc-completed-grid">
-        @foreach (var novel in completedNovels)
-        {
-            <a class="tc-completed-card" asp-action="Details" asp-route-id="@novel.Id">
-                <div class="tc-completed-cover">
-                    <img src="@(novel.CoverImage ?? "/images/cloud-library.svg")"
-                         alt="Bìa @novel.Title" />
-                    <span>FULL</span>
-                </div>
-                <strong>@novel.Title</strong>
-                <small>@novel.Author.DisplayName · @novel.Chapters.Count chương</small>
-            </a>
-        }
-
-        @if (completedNovels.Count == 0)
-        {
-            <div class="tc-empty">Truyện hoàn thành sẽ xuất hiện ở đây.</div>
-        }
-    </div>
-</section>

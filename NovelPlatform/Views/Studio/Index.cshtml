@@ -48,14 +48,40 @@
                             })
                         </span>
                     </div>
-                    <a class="btn btn-outline" asp-action="AddChapter" asp-route-id="@novel.Id">
-                        ＋ Thêm chương
-                    </a>
+                    <div class="studio-actions">
+                        <a class="btn btn-outline" asp-action="AddChapter" asp-route-id="@novel.Id">Thêm chương</a>
+                        <a class="btn btn-outline" asp-action="Edit" asp-route-id="@novel.Id">Sửa truyện</a>
+                        <form asp-action="Delete" asp-route-id="@novel.Id" method="post"
+                              data-confirm="Xóa truyện và toàn bộ chương của truyện?">
+                            <button class="btn btn-outline" type="submit">Xóa truyện</button>
+                        </form>
+                    </div>
                     @if (novel.ReviewStatus == "Approved")
                     {
                         <a class="btn btn-quiet" asp-controller="Home" asp-action="Details" asp-route-id="@novel.Id">
                             Xem truyện →
                         </a>
+                    }
+                    @if (novel.Chapters.Count > 0)
+                    {
+                        <details class="studio-chapters">
+                            <summary>Quản lý chương</summary>
+                            <ul>
+                                @foreach (var chapter in novel.Chapters.OrderBy(chapter => chapter.Number))
+                                {
+                                    <li>
+                                        <span>Chương @chapter.Number: @chapter.Title</span>
+                                        <div class="studio-actions">
+                                            <a class="btn btn-outline" asp-action="EditChapter" asp-route-id="@chapter.Id">Sửa</a>
+                                            <form asp-action="DeleteChapter" asp-route-id="@chapter.Id" method="post"
+                                                  data-confirm="Xóa chương này?">
+                                                <button class="btn btn-outline" type="submit">Xóa</button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </details>
                     }
                 </article>
             }

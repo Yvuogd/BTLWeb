@@ -7,46 +7,32 @@ namespace NovelPlatform.Controllers;
 
 public class HomeController(AppDbContext db) : Controller
 {
-    public async Task<IActionResult> Index(string? q, int? category, string? genre)
+    public async Task<IActionResult> Index(string? q, int? category, string? genre, int page = 1)
     {
-        IQueryable<Novel> query = db.Novels
-            .Where(novel => novel.ReviewStatus == "Approved")
-            .Include(novel => novel.Author)
-            .Include(novel => novel.Category)
-            .Include(novel => novel.Ratings)
-            .Include(novel => novel.Chapters
-                .Where(chapter => chapter.Status == "Published"));
-
-        if (!string.IsNullOrWhiteSpace(q))
-        {
-            query = query.Where(novel =>
-                novel.Title.Contains(q)
-                || novel.Author.DisplayName.Contains(q)
-                || novel.Category.Name.Contains(q));
-        }
-
-        if (category.HasValue)
-        {
-            query = query.Where(novel => novel.CategoryId == category.Value);
-        }
-
-        if (!string.IsNullOrWhiteSpace(genre))
-        {
-            genre = genre.Trim();
-            query = query.Where(novel => novel.Category.Name.Contains(genre));
-        }
-
+        var query = NovelCatalog.Search(db, q, category, genre);
+        ViewBag.Total = await query.CountAsync();
+        int pages = NovelCatalog.PageCount((int)ViewBag.Total);
+        ViewBag.Pages = pages;
+        ViewBag.Page = page = Math.Clamp(page, 1, pages);
         ViewBag.Query = q;
         ViewBag.Category = category;
         ViewBag.Genre = genre;
-        ViewBag.Categories = await db.Categories
-            .OrderBy(item => item.Name)
+
+        var novels = await NovelCatalog.Page(query, page)
+            .Include(novel => novel.Author)
+            .Include(novel => novel.Category)
+            .Include(novel => novel.Ratings)
+            .Include(novel => novel.Chapters.Where(chapter => chapter.Status == "Published"))
+            .AsSplitQuery()
             .ToListAsync();
 
-        var novels = await query
-            .OrderByDescending(novel => novel.CreatedAt)
-            .ToListAsync();
+        Response.Headers.Vary = "X-Requested-With";
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            return PartialView("_Catalog", novels);
+        }
 
+        ViewBag.Categories = await db.Categories.OrderBy(category => category.Name).ToListAsync();
         return View(novels);
     }
 
@@ -108,3 +94,4 @@ public class HomeController(AppDbContext db) : Controller
         return View(chapter);
     }
 }
+

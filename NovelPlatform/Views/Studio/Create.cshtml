@@ -1,38 +1,49 @@
+@model NovelPlatform.Models.NovelInput
 @{
-    ViewData["Title"] = "Tạo truyện";
+    int novelId = ViewBag.NovelId;
+    bool editing = novelId != 0;
+    ViewData["Title"] = editing ? "Sửa truyện" : "Tạo truyện";
 }
 
 <div class="form-page">
-    <form class="form-card narrow" asp-action="Create" method="post">
+    <form class="form-card narrow" asp-action="@(editing ? "Edit" : "Create")"
+          asp-route-id="@(editing ? novelId : (int?)null)" method="post" enctype="multipart/form-data">
         <a class="back-link" asp-action="Index">← Studio</a>
-        <span class="eyebrow">BẮT ĐẦU MỘT CÂU CHUYỆN MỚI</span>
-        <h1>Thông tin truyện</h1>
-        <div asp-validation-summary="ModelOnly" class="form-error"></div>
+        <h1>@ViewData["Title"]</h1>
+        <div asp-validation-summary="All" class="form-error"></div>
 
-        <label for="title">Tên truyện</label>
-        <input id="title" name="title" maxlength="180" required />
+        <label asp-for="Title">Tên truyện</label>
+        <input asp-for="Title" maxlength="180" required />
 
-        <label for="categoryId">Thể loại</label>
-        <select id="categoryId" name="categoryId" asp-items="ViewBag.Categories" required>
+        <label asp-for="CategoryId">Thể loại</label>
+        <select asp-for="CategoryId" asp-items="ViewBag.Categories" required>
             <option value="">Chọn thể loại</option>
         </select>
 
-        <label for="description">Giới thiệu</label>
-        <textarea id="description" name="description" rows="5" maxlength="2500"></textarea>
+        <label asp-for="Description">Giới thiệu</label>
+        <textarea asp-for="Description" rows="5" maxlength="2500"></textarea>
 
-        <label for="coverImage">Đường dẫn ảnh bìa (tùy chọn)</label>
-        <input id="coverImage" name="coverImage" maxlength="300" placeholder="/images/cloud-library.svg" />
+        @if (ViewBag.Cover is string cover)
+        {
+            <img class="studio-cover-preview" src="@cover" alt="Ảnh bìa hiện tại" />
+        }
+        <label asp-for="Cover">Ảnh bìa (JPG, PNG hoặc WebP, tối đa 3 MB)</label>
+        <input asp-for="Cover" type="file" accept="image/jpeg,image/png,image/webp" />
 
-        <label for="status">Trạng thái truyện</label>
-        <select id="status" name="status">
+        <label asp-for="Status">Trạng thái truyện</label>
+        <select asp-for="Status">
             <option value="Ongoing">Đang ra</option>
             <option value="Completed">Hoàn thành</option>
         </select>
 
         @if (!User.IsInRole("Admin"))
         {
-            <p class="form-hint">Truyện sẽ được gửi tới quản trị viên để kiểm duyệt trước khi hiển thị công khai.</p>
+            <p class="form-hint">Truyện sẽ hiển thị công khai sau khi quản trị viên duyệt.</p>
         }
-        <button class="btn btn-dark btn-block" type="submit">Tạo truyện</button>
+        <button class="btn btn-dark btn-block" type="submit">Lưu truyện</button>
     </form>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

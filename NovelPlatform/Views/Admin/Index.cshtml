@@ -148,6 +148,18 @@
                 <div class="admin-row">
                     <strong>@category.Name</strong>
                     <small>@category.Description</small>
+                    <details>
+                        <summary>Sửa hoặc xóa</summary>
+                        <form asp-action="EditCategory" asp-route-id="@category.Id" method="post" class="category-form">
+                            <input name="name" aria-label="Tên thể loại" value="@category.Name" maxlength="60" required />
+                            <input name="description" aria-label="Mô tả thể loại" value="@category.Description" maxlength="500" />
+                            <button class="btn btn-outline" type="submit">Lưu</button>
+                        </form>
+                        <form asp-action="DeleteCategory" asp-route-id="@category.Id" method="post"
+                              data-confirm="Xóa thể loại này?">
+                            <button class="btn btn-outline" type="submit">Xóa thể loại</button>
+                        </form>
+                    </details>
                 </div>
             }
         </section>
